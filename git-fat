@@ -43,6 +43,7 @@ except ImportError:
 try:
     from boto.s3.connection import S3Connection
     from boto.s3.key import Key
+    import boto
     class S3Backend(object):
 
         def __init__(self,bucket,key,secret,objdir):
@@ -77,6 +78,12 @@ try:
                         # download is removed.
                         os.remove(localfile)
                         raise
+                    except boto.exception.S3ResponseError as e:
+                        # Swallow missing files
+                        if e.status == 404:
+                            print("Unable to find: %s" % file)
+                        else:
+                            raise
 
         def push(self,files):
             bkt = self.get_bucket()
